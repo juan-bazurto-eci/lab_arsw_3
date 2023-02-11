@@ -2,6 +2,7 @@ package edu.eci.arsw.highlandersim;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -35,6 +36,7 @@ public class ControlFrame extends JFrame {
     private JLabel statisticsLabel;
     private JScrollPane scrollPane;
     private JTextField numOfImmortals;
+    public ArrayList<Immortal> aliveImmortals;
 
     /**
      * Launch the application.
@@ -88,17 +90,22 @@ public class ControlFrame extends JFrame {
         btnPauseAndCheck.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
 
-                /*
-				 * COMPLETAR
-                 */
+                for (Immortal im : immortals) {
+                    im.hold();
+                }
+
                 int sum = 0;
                 for (Immortal im : immortals) {
                     sum += im.getHealth();
                 }
 
+                for (Immortal im : immortals) {
+                    im.restart();
+                }
+
                 statisticsLabel.setText("<html>"+immortals.toString()+"<br>Health sum:"+ sum);
-                
-                
+
+
 
             }
         });
@@ -108,9 +115,10 @@ public class ControlFrame extends JFrame {
 
         btnResume.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                /**
-                 * IMPLEMENTAR
-                 */
+
+                for (Immortal im : immortals) {
+                    im.restart();
+                }
 
             }
         });
@@ -121,7 +129,7 @@ public class ControlFrame extends JFrame {
         toolBar.add(lblNumOfImmortals);
 
         numOfImmortals = new JTextField();
-        numOfImmortals.setText("3");
+        numOfImmortals.setText("10"); //Original 3
         toolBar.add(numOfImmortals);
         numOfImmortals.setColumns(10);
 
@@ -129,14 +137,24 @@ public class ControlFrame extends JFrame {
         btnStop.setForeground(Color.RED);
         toolBar.add(btnStop);
 
+        btnStop.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+
+                for (Immortal im : immortals) {
+                    im.hold();
+                }
+
+            }
+        });
+
         scrollPane = new JScrollPane();
         contentPane.add(scrollPane, BorderLayout.CENTER);
 
         output = new JTextArea();
         output.setEditable(false);
         scrollPane.setViewportView(output);
-        
-        
+
+
         statisticsLabel = new JLabel("Immortals total health:");
         contentPane.add(statisticsLabel, BorderLayout.SOUTH);
 
@@ -145,15 +163,18 @@ public class ControlFrame extends JFrame {
     public List<Immortal> setupInmortals() {
 
         ImmortalUpdateReportCallback ucb=new TextAreaUpdateReportCallback(output,scrollPane);
-        
+
         try {
             int ni = Integer.parseInt(numOfImmortals.getText());
+            System.out.println("Number of inmortals "+ni);
 
             List<Immortal> il = new LinkedList<Immortal>();
+            aliveImmortals = new ArrayList<Immortal>();
 
             for (int i = 0; i < ni; i++) {
-                Immortal i1 = new Immortal("im" + i, il, DEFAULT_IMMORTAL_HEALTH, DEFAULT_DAMAGE_VALUE,ucb);
+                Immortal i1 = new Immortal("im" + i, il, DEFAULT_IMMORTAL_HEALTH, DEFAULT_DAMAGE_VALUE,ucb, aliveImmortals);
                 il.add(i1);
+                aliveImmortals.add(i1);
             }
             return il;
         } catch (NumberFormatException e) {
@@ -173,8 +194,8 @@ class TextAreaUpdateReportCallback implements ImmortalUpdateReportCallback{
     public TextAreaUpdateReportCallback(JTextArea ta,JScrollPane jsp) {
         this.ta = ta;
         this.jsp=jsp;
-    }       
-    
+    }
+
     @Override
     public void processReport(String report) {
         ta.append(report);
@@ -189,5 +210,5 @@ class TextAreaUpdateReportCallback implements ImmortalUpdateReportCallback{
         );
 
     }
-    
+
 }
